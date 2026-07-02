@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لعبة بولس الرسول في الأسر</title>
+    <style>
+        /* CSS - التصميم */
+        :root {
+            --stone-color: #4a4a4a;
+            --accent-color: #e67e22;
+            --success-color: #2ecc71;
+            --bg-color: #1a1a1d;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .game-card {
+            background: #2d2d30;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+            width: 90%;
+            max-width: 700px;
+            text-align: center;
+            border: 2px solid #444;
+        }
+
+        h1 { color: var(--accent-color); margin-bottom: 10px; }
+        p { color: #ccc; margin-bottom: 30px; }
+
+        /* منطقة السجن والحركة */
+        .prison-track {
+            height: 120px;
+            background: linear-gradient(to right, #333 10%, #111 90%);
+            border-bottom: 8px solid #555;
+            position: relative;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .bars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 25%; /* السجن في البداية */
+            height: 100%;
+            background: repeating-linear-gradient(90deg, transparent, transparent 20px, #666 20px, #666 25px);
+            z-index: 2;
+            border-right: 3px solid #888;
+        }
+
+        .character {
+            font-size: 60px;
+            position: absolute;
+            left: 5%; /* نقطة البداية */
+            bottom: 10px;
+            transition: all 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 1;
+        }
+
+        .freedom-gate {
+            position: absolute;
+            right: 15px;
+            font-size: 60px;
+        }
+
+        /* منطقة الأسئلة */
+        .quiz-box {
+            background: #3e3e42;
+            padding: 20px;
+            border-radius: 15px;
+            min-height: 200px;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            background: #555;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--accent-color);
+            transform: translateY(-3px);
+        }
+
+        #status-msg {
+            margin-top: 20px;
+            font-weight: bold;
+            height: 24px;
+        }
+
+        /* تأثير الفوز */
+        .victory-glow {
+            text-shadow: 0 0 20px #f1c40f;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-card">
+        <h1>الرسول بولس: طريق الحرية</h1>
+        <p>أجب على الأسئلة لتساعد بولس الرسول في كسر قيوده والخروج من الأسر</p>
+
+        <div class="prison-track">
+            <div class="bars" id="bars"></div>
+            <div id="paul" class="character">👤</div>
+            <div class="freedom-gate">☀️</div>
+        </div>
+
+        <div class="quiz-box" id="quiz-box">
+            <div class="question-text" id="question">جاري التحميل...</div>
+            <div class="options-container" id="options"></div>
+            <div id="status-msg"></div>
+        </div>
+    </div>
+
+    <script>
+        // JS - منطق اللعبة والبيانات
+        const gameData = [
+            {
+                q: "من داخل سجنه، كتب بولس الرسول رسالة يطلب فيها من 'فيليمون' أن يقبل عبده الهارب كأخ.. ما اسم هذا العبد؟",
+                options: ["أونيسيمس", "تيكيكس", "أبفرودتس", "مرقس"],
+                correct: 0
+            },
+            {
+                q: "في أي رسالة كتب بولس: 'أستطيع كل شيء في المسيح الذي يقويني' وهو في الأسر؟",
+                options: ["أفسس", "كولوسي", "فيلبي", "تيموثاوس الثانية"],
+                correct: 2
+            },
+            {
+                q: "من هو التلميذ الذي وصفه بولس في رسالة كولوسي بـ 'الطبيب الحبيب' وكان معه في الأسر؟",
+                options: ["متى", "لوقا", "برنابا", "استفانوس"],
+                correct: 1
+            },
+            {
+                q: "ما هي الرسالة التي تُعرف برسالة 'الفرح' رغم أن بولس كتبها وهو مقيد بالسلاسل؟",
+                options: ["فيلبي", "أفسس", "غلاطية", "عبرانيين"],
+                correct: 0
+            },
+            {
+                q: "في رسالته الأخيرة قبل استشهاده، طلب بولس من تيموثاوس أن يحضر معه شيئين.. ما هما؟",
+                options: ["الذهب والفضة", "الرداء والكتب", "السيف والدرع", "الزيت والخمر"],
+                correct: 1
+            }
+        ];
+
+        let currentStage = 0;
+        const totalStages = gameData.length;
+        
+        const paul = document.getElementById('paul');
+        const bars = document.getElementById('bars');
+        const questionEl = document.getElementById('question');
+        const optionsContainer = document.getElementById('options');
+        const statusMsg = document.getElementById('status-msg');
+
+        function initGame() {
+            renderStage();
+        }
+
+        function renderStage() {
+            if (currentStage >= totalStages) {
+                showVictory();
+                return;
+            }
+
+            const stage = gameData[currentStage];
+            questionEl.innerText = stage.q;
+            optionsContainer.innerHTML = '';
+            statusMsg.innerText = '';
+
+            stage.options.forEach((opt, index) => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.onclick = () => handleAnswer(index);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        function handleAnswer(selectedIndex) {
+            const isCorrect = selectedIndex === gameData[currentStage].correct;
+
+            if (isCorrect) {
+                currentStage++;
+                updateVisuals();
+                statusMsg.style.color = "#2ecc71";
+                statusMsg.innerText = "إجابة صحيحة! تقدم خطوة نحو النور.";
+                
+                setTimeout(renderStage, 1200);
+            } else {
+                statusMsg.style.color = "#e74c3c";
+                statusMsg.innerText = "حاول مرة أخرى.. تأمل في آيات رسائل الأسر.";
+                // اهتزاز بسيط للتنبيه
+                document.querySelector('.quiz-box').style.animation = "shake 0.5s";
+                setTimeout(() => document.querySelector('.quiz-box').style.animation = "", 500);
+            }
+        }
+
+        function updateVisuals() {
+            // تحريك بولس
+            const movePercentage = (currentStage / totalStages) * 80 + 5;
+            paul.style.left = movePercentage + "%";
+            
+            // تقليل القضبان تدريجياً
+            const opacity = 1 - (currentStage / totalStages);
+            bars.style.opacity = opacity;
+            
+            if (currentStage > 0) {
+                paul.innerText = "🏃"; // تغيير الشكل أثناء الجري
+                setTimeout(() => { if(currentStage < totalStages) paul.innerText = "👤"; }, 800);
+            }
+        }
+
+        function showVictory() {
+            questionEl.innerHTML = "<h2 class='victory-glow'>لقد نال بولس الرسول حريته!</h2><p> 'قد جاهدت الجهاد الحسن، أكملت السعي، حفظت الإيمان' </p>";
+            optionsContainer.innerHTML = "<button onclick='location.reload()'>إعادة التجربة</button>";
+            paul.innerText = "🕊️";
+            paul.style.left = "85%";
+            bars.style.display = "none";
+        }
+
+        initGame();
+    </script>
+
+    <style>
+        /* إضافة أنيميشن الاهتزاز عند الخطأ */
+        @keyframes shake {
+            0%, 100% {transform: translateX(0);}
+            25% {transform: translateX(-10px);}
+            75% {transform: translateX(10px);}
+        }
+    </style>
+</body>
+</html>

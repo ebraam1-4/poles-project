@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>رحلات بولس الرسول التبشيرية</title>
+    <link rel="icon" href="preview.png" />
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <img src="logo2.png" class="site-logou" />
+      <img src="preview.png" class="site-logo" />
+      <h1>رحلات القديس بولس الرسول</h1>
+      <p>
+        تعالي نعرف تفاصيل الرحلات التبشيرية بالخرائط و نحاول نشرحهم بشكل بسيط
+      </p>
+    </header>
+    <main class="container">
+      <section class="trip-card">
+        <div class="card-content">
+          <h2>نبذه عن القديس بولس</h2>
+          <p>
+            هناخد هنا حبه معلومات عن مين هو بولس الرسول و ايه حكايته و بعدها
+            نتطرق لرحلاته التبشيرية
+          </p>
+          <a href="poles.html" class="btn">التفاصيل والخريطة</a>
+        </div>
+      </section>
+      <section class="trip-card">
+        <div class="card-content">
+          <h2>الرحلة التبشيرية الأولى</h2>
+          <p>
+            دي اول رحله تبشيرية لبولس الرسول و كانت من أنطاكية إلى قبرص وجنوب
+            غلاطية.
+          </p>
+          <a href="trip1.html" class="btn">التفاصيل والخريطة</a>
+        </div>
+      </section>
+
+      <section class="trip-card">
+        <div class="card-content">
+          <h2>الرحلة التبشيرية الثانية</h2>
+          <p>
+            و دي تاني رحله و كانت من أنطاكية إلى أوروبا (فيلبي، تسالونيكي،
+            وأثينا).
+          </p>
+          <a href="trip2.html" class="btn">التفاصيل والخريطة</a>
+        </div>
+      </section>
+
+      <section class="trip-card">
+        <div class="card-content">
+          <h2>الرحلة التبشيرية الثالثة</h2>
+          <p>اما دي بقي كان غرضها التركيز على أفسس وتثبيت الكنائس.</p>
+          <a href="trip3.html" class="btn">التفاصيل والخريطة</a>
+        </div>
+      </section>
+
+      <section class="trip-card">
+        <div class="card-content">
+          <h2>رحلة الأسر إلى روما</h2>
+          <p>
+            و هنا للاسف كان المسار الأخير للقديس بولس إلى عاصمة الإمبراطورية.
+          </p>
+          <a href="trip4.html" class="btn">التفاصيل والخريطة</a>
+        </div>
+      </section>
+      <section class="trip-card">
+        <div class="card-content">
+          <h2>سبب كتابة كل رسالة لمعلمنا بولس</h2>
+          <p>
+هناخد نبذه عن كل رساله اتكتبت ليه           </p>
+          <a href="messages.html" class="btn">التفاصيل والخريطة</a>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>الحقوق محفوظه لمدرسة مار مرقس لتلمذة و إعداد الخدام</p>
+    </footer>
+    <button class="theme-switch" id="toggleMode">🌙</button>
+    <script>
+      const themeBtn = document.getElementById("toggleMode");
+      const body = document.body;
+
+      // وظيفة التبديل
+      themeBtn.addEventListener("click", () => {
+        body.classList.toggle("dark-mode");
+
+        // تغيير الأيقونة وحفظ الحالة في المتصفح
+        if (body.classList.contains("dark-mode")) {
+          themeBtn.innerText = "☀️";
+          localStorage.setItem("savedTheme", "dark");
+        } else {
+          themeBtn.innerText = "🌙";
+          localStorage.setItem("savedTheme", "light");
+        }
+      });
+
+      // تشغيل الوضع المحفوظ عند فتح الصفحة
+      window.onload = () => {
+        const currentTheme = localStorage.getItem("savedTheme");
+        if (currentTheme === "dark") {
+          body.classList.add("dark-mode");
+          themeBtn.innerText = "☀️";
+        }
+      };
+    </script>
+  </body>
+</html>

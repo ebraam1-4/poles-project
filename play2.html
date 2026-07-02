@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>رحلة بولس الرسول الثانية</title>
+    <style>
+        :root {
+            --sea-color: #2980b9;
+            --land-color: #f1c40f;
+            --path-color: #e67e22;
+            --text-dark: #2c3e50;
+        }
+
+        body {
+            background-color: #dcdde1;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+            color: var(--text-dark);
+            margin-bottom: 20px;
+        }
+
+        /* الخريطة */
+        .map-container {
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            background: #a2d2ff; /* لون البحر */
+            border: 5px solid #fff;
+            border-radius: 20px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        /* تمثيل المدن على الخريطة */
+        .city {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: red;
+            border-radius: 50%;
+            z-index: 2;
+        }
+
+        .city-label {
+            position: absolute;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 15px;
+            transform: translateX(-50%);
+            white-space: nowrap;
+        }
+
+        /* مسار الرحلة */
+        .path-svg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        #traveler {
+            position: absolute;
+            font-size: 30px;
+            z-index: 3;
+            transition: all 1s ease-in-out;
+            transform: translate(-50%, -50%);
+        }
+
+        /* صندوق الأسئلة */
+        .quiz-card {
+            background: white;
+            width: 90%;
+            max-width: 600px;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 12px;
+            border: 2px solid var(--sea-color);
+            background: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--sea-color);
+            color: white;
+        }
+
+        #feedback {
+            margin-top: 15px;
+            font-weight: bold;
+            height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <h1>مغامرة الرحلة التبشيرية الثانية</h1>
+        <p>ساعد بولس الرسول ورفاقه في رحلتهم من أنطاكية إلى كورنثوس</p>
+    </div>
+
+    <div class="map-container" id="map">
+        <!-- SVG لرسم المسار المنقط -->
+        <svg class="path-svg">
+            <polyline id="route-line" points="" fill="none" stroke="#e67e22" stroke-width="3" stroke-dasharray="5,5" />
+        </svg>
+
+        <!-- المدن سيتم إضافتها بواسطة JS -->
+        <div id="traveler">⛵</div>
+    </div>
+
+    <div class="quiz-card">
+        <h3 id="current-location">الموقع الحالي: أنطاكية</h3>
+        <h2 id="question">تحميل السؤال...</h2>
+        <div class="options-grid" id="options"></div>
+        <div id="feedback"></div>
+    </div>
+
+    <script>
+        // بيانات الرحلة: المدن، الإحداثيات (بنسبة مئوية)، والأسئلة
+        const journey = [
+            {
+                city: "أنطاكية",
+                x: 90, y: 70,
+                q: "من هو الرفيق الذي اختاره بولس ليبدأ معه الرحلة الثانية بعد انفصاله عن برنابا؟",
+                options: ["مرقس", "سيلا", "لوقا", "تيموثاوس"],
+                correct: 1
+            },
+            {
+                city: "لسترة",
+                x: 75, y: 60,
+                q: "في لسترة، انضم تلميذ شاب لبولس وأصبح ابنه الروحي.. من هو؟",
+                options: ["تيتوس", "تيموثاوس", "أبولوس", "فيليمون"],
+                correct: 1
+            },
+            {
+                city: "ترواس",
+                x: 60, y: 40,
+                q: "رأى بولس رؤيا في ترواس لرجل يطلب المساعدة، من أين كان هذا الرجل؟",
+                options: ["مصر", "روما", "مقدونيا", "أفسس"],
+                correct: 2
+            },
+            {
+                city: "فيلبي",
+                x: 45, y: 25,
+                q: "من هي أول امرأة آمنت في فيلبي وكانت تعمل في بيع الأرجوان؟",
+                options: ["ليديا", "بريسكيلا", "دامارس", "طابية"],
+                correct: 0
+            },
+            {
+                city: "أثينا",
+                x: 40, y: 65,
+                q: "أين ألقى بولس خطابه الشهير في أثينا عن 'الإله المجهول'؟",
+                options: ["الهيكل", "المجمع", "أريوس باغوس", "البحر"],
+                correct: 2
+            },
+            {
+                city: "كورنثوس",
+                x: 30, y: 75,
+                q: "كم المدة التي قضاها بولس في كورنثوس يعلم كلمة الله؟",
+                options: ["3 أشهر", "سنة و6 أشهر", "شهر واحد", "4 سنوات"],
+                correct: 1
+            }
+        ];
+
+        let currentIndex = 0;
+        const traveler = document.getElementById('traveler');
+        const routeLine = document.getElementById('route-line');
+
+        function initGame() {
+            renderMap();
+            loadStage();
+        }
+
+        function renderMap() {
+            const map = document.getElementById('map');
+            let points = "";
+
+            journey.forEach((step, index) => {
+                // إضافة نقطة المدينة
+                const cityDiv = document.createElement('div');
+                cityDiv.className = 'city';
+                cityDiv.style.left = step.x + "%";
+                cityDiv.style.top = step.y + "%";
+                
+                const label = document.createElement('div');
+                label.className = 'city-label';
+                label.style.left = step.x + "%";
+                label.style.top = step.y + "%";
+                label.innerText = step.city;
+                
+                map.appendChild(cityDiv);
+                map.appendChild(label);
+
+                // جمع النقاط للمسار
+                points += `${(step.x * 800) / 100},${(step.y * 300) / 100} `;
+            });
+
+            routeLine.setAttribute('points', points);
+            updateTravelerPosition();
+        }
+
+        function updateTravelerPosition() {
+            const step = journey[currentIndex];
+            traveler.style.left = step.x + "%";
+            traveler.style.top = step.y + "%";
+            // تغيير الأيقونة حسب المرحلة (سفينة في البحر، شخص على الأرض)
+            traveler.innerText = (step.city === "ترواس" || step.city === "فيلبي") ? "⛵" : "👣";
+        }
+
+        function loadStage() {
+            if (currentIndex >= journey.length) {
+                showWin();
+                return;
+            }
+
+            const data = journey[currentIndex];
+            document.getElementById('current-location').innerText = "الموقع الحالي: " + data.city;
+            document.getElementById('question').innerText = data.q;
+            
+            const optionsDiv = document.getElementById('options');
+            optionsDiv.innerHTML = "";
+            
+            data.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.onclick = () => checkAnswer(i);
+                optionsDiv.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selected) {
+            const feedback = document.getElementById('feedback');
+            if (selected === journey[currentIndex].correct) {
+                feedback.style.color = "green";
+                feedback.innerText = "إجابة صحيحة! الرحلة تستمر...";
+                currentIndex++;
+                updateTravelerPosition();
+                setTimeout(() => {
+                    feedback.innerText = "";
+                    loadStage();
+                }, 1500);
+            } else {
+                feedback.style.color = "red";
+                feedback.innerText = "إجابة خاطئة، راجع سفر الأعمال ص 15-18";
+            }
+        }
+
+        function showWin() {
+            document.getElementById('question').innerText = "مبروك! لقد أتممت الرحلة التبشيرية الثانية بسلام.";
+            document.getElementById('options').innerHTML = "<button onclick='location.reload()'>ابدأ الرحلة من جديد</button>";
+            document.getElementById('current-location').innerText = "الوصول النهائي: كورنثوس";
+            traveler.innerText = "🏁";
+        }
+
+        initGame();
+    </script>
+</body>
+</html>

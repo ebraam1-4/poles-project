@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>رحلة بولس الرسول - نظام المحطات</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Cairo:wght@400;700&display=swap');
+
+        :root {
+            --gold: #ffd700;
+            --paper: #fdf5e6;
+            --wood: #3e2723;
+        }
+
+        body {
+            font-family: 'Cairo', sans-serif;
+            background: #1a1a1a url('https://www.transparenttextures.com/patterns/dark-wood.png');
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 10px;
+        }
+
+        .header-container {
+            text-align: center;
+            width: 95%;
+            background: rgba(0,0,0,0.8);
+            padding: 15px;
+            border-radius: 15px;
+            border: 2px solid var(--gold);
+            margin-bottom: 10px;
+        }
+
+        h1 { font-family: 'Amiri', serif; color: var(--gold); font-size: 1.5rem; margin: 0; }
+        
+        #instruction { color: #ddd; font-size: 0.9rem; margin-top: 5px; }
+
+        #game-view-port {
+            width: 100%;
+            max-width: 800px;
+            aspect-ratio: 1024 / 768;
+            position: relative;
+            border: 4px solid #5d4037;
+            background-image: url('https://copticorthodoxblog.wordpress.com/wp-content/uploads/2017/06/01_paul_lystra_derbe_1024.jpg');
+            background-size: 100% 100%;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.7);
+        }
+
+        #ship {
+            font-size: clamp(40px, 10vw, 60px);
+            position: absolute;
+            z-index: 100;
+            transition: all 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translate(-50%, -85%);
+            filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.5));
+        }
+
+        .active-target {
+            position: absolute;
+            width: 40px; height: 40px;
+            border: 3px solid var(--gold);
+            border-radius: 50%;
+            animation: pulse 1.2s infinite;
+            transform: translate(-50%, -50%);
+        }
+
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(0.6); opacity: 1; }
+            100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+        }
+
+        /* منطقة أزرار المحطات */
+        #options-container {
+            width: 95%;
+            max-width: 800px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0,0,0,0.5);
+            border-radius: 15px;
+        }
+
+        .station-btn {
+            padding: 15px 10px;
+            background: linear-gradient(145deg, #e1b382, #c89666);
+            color: #2c1e12;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            box-shadow: 0 4px #8b4513;
+            transition: 0.2s;
+        }
+
+        .station-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 0 #8b4513;
+        }
+
+        .station-btn.disabled {
+            background: #555;
+            color: #888;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        /* المودال */
+        #story-modal {
+            display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 85%; max-width: 450px; background: var(--paper); color: #333; padding: 25px;
+            border-radius: 20px; border: 8px solid var(--wood); z-index: 1000; text-align: center;
+        }
+
+        #overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 999; }
+        
+        .btn-continue { background: var(--wood); color: #fff; padding: 12px 30px; border: none; border-radius: 8px; margin-top: 15px; cursor: pointer; font-size: 1.1rem; }
+    </style>
+</head>
+<body>
+
+    <div class="header-container">
+        <h1>⛵ رحلة بولس الرسول (المغامرة الأولى)</h1>
+        <div id="instruction">دوس على المحطة اللي عليها الدور عشان السفينة تتحرك</div>
+    </div>
+
+    <div id="game-view-port">
+        <div id="ship">⛵</div>
+        <div id="target-pulse" class="active-target"></div>
+    </div>
+
+    <div id="options-container">
+        </div>
+
+    <div id="overlay"></div>
+    <div id="story-modal">
+        <h2 id="modal-title" style="font-family: Amiri; margin: 0; color: #8b4513;"></h2>
+        <p id="modal-text" style="margin-top: 15px; line-height: 1.6; font-size: 1.1rem;"></p>
+        <button class="btn-continue" onclick="closeModal()">تحرك للمحطة التالية ⚓</button>
+    </div>
+
+    <script>
+        const tripData = [
+            { name: "أنطاكية", x: 86, y: 50, info: "الحكاية بدأت من هنا.. الروح القدس اختار بولس وبرنابا مخصوص، والكنيسة صامت وصلت وودعتهم بالحب." },
+            { name: "سلوكية", x: 81, y: 48, info: "نزلوا لمدينة سلوكية، ودي الميناء اللي ركبوا منه المركب. أول مواجهة ليهم مع البحر." },
+            { name: "قبرص", x: 68, y: 63, info: "في بافوس، بولس وقف قدام الساحر 'عليم' اللي كان بيعطلهم، وضربه بالعمى!" },
+            { name: "بيرجة", x: 54, y: 42, info: "هنا يوحنا مرقس قرر إنه يرجع وميكملش، بس بولس وبرنابا كملوا المشوار بشجاعة." },
+            { name: "أنطاكية بيسيدية", x: 51, y: 30, info: "بولس عمل وعظة تاريخية في المجمع حكى فيها عن المسيح.. ناس آمنت وناس غارت وطردتهم." },
+            { name: "أيقونية", x: 61, y: 31, info: "قعدوا هناك فترة يبشروا بكل شجاعة، وربنا كان بيأكد كلامهم بمعجزات وعجائب." },
+            { name: "لسترة", x: 66, y: 38, info: "بولس شفى راجل مقعد، فالناس افتكروهم آلهة! بولس صرخ ومنعهم وقالهم إحنا بشر زيكم." },
+            { name: "دربة", x: 73, y: 41, info: "آخر محطة قبل الرجوع.. بشروا فيها وناس كتير بقوا تلاميذ للمسيح، وكانت بركة ليهم." }
+        ];
+
+        let currentStep = 0;
+
+        function createButtons() {
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+            
+            // خلط الأسماء عشان التحدي
+            const shuffledNames = [...tripData].sort(() => Math.random() - 0.5);
+
+            shuffledNames.forEach(station => {
+                const btn = document.createElement('button');
+                btn.className = 'station-btn';
+                btn.innerText = station.name;
+                btn.onclick = () => selectStation(station.name, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectStation(name, btn) {
+            if (name === tripData[currentStep].name) {
+                // إجابة صحيحة
+                showModal(currentStep);
+                btn.classList.add('disabled');
+                btn.onclick = null; // تعطيل الزرار بعد الاختيار الصح
+            } else {
+                // إجابة خاطئة
+                alert("مش دي المحطة اللي عليها الدور.. ركز في الدائرة اللي بتنور!");
+            }
+        }
+
+        function updateShip() {
+            const ship = document.getElementById('ship');
+            const pulse = document.getElementById('target-pulse');
+            const data = tripData[currentStep] || tripData[currentStep-1];
+            
+            ship.style.left = data.x + '%';
+            ship.style.top = data.y + '%';
+            
+            if(currentStep < tripData.length) {
+                pulse.style.left = tripData[currentStep].x + '%';
+                pulse.style.top = tripData[currentStep].y + '%';
+                pulse.style.display = 'block';
+            } else { 
+                pulse.style.display = 'none'; 
+            }
+        }
+
+        function showModal(i) {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('story-modal').style.display = 'block';
+            document.getElementById('modal-title').innerText = "📍 وصلنا محطة: " + tripData[i].name;
+            document.getElementById('modal-text').innerText = tripData[i].info;
+        }
+
+        function closeModal() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('story-modal').style.display = 'none';
+            
+            currentStep++;
+            updateShip();
+
+            if (currentStep === tripData.length) {
+                setTimeout(() => {
+                    alert("يا بطل! الرحلة الأولى خلصت بنجاح والسفينة لفت العالم كله! 🏆");
+                }, 1000);
+            }
+        }
+
+        // تشغيل اللعبة
+        createButtons();
+        updateShip();
+    </script>
+</body>
+</html>

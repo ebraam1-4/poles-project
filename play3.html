@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مغامرة الرحلة التبشيرية الثالثة</title>
+    <style>
+        :root {
+            --primary: #8e44ad;
+            --secondary: #f39c12;
+            --bg: #ecf0f1;
+        }
+
+        body {
+            background-color: var(--bg);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-header {
+            text-align: center;
+            color: #2c3e50;
+        }
+
+        /* شريط التقدم والطاقة */
+        .status-container {
+            width: 100%;
+            max-width: 600px;
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .spirit-bar-bg {
+            height: 20px;
+            background: #ddd;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+
+        #spirit-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #9b59b6, #8e44ad);
+            transition: width 0.5s ease;
+        }
+
+        /* الخريطة المصغرة */
+        .mini-map {
+            width: 100%;
+            max-width: 600px;
+            height: 150px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            position: relative;
+            margin-bottom: 20px;
+            border: 3px dashed #bdc3c7;
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .step {
+            width: 20px;
+            height: 20px;
+            background: #fff;
+            border: 3px solid #8e44ad;
+            border-radius: 50%;
+            z-index: 1;
+        }
+
+        .line {
+            flex-grow: 1;
+            height: 4px;
+            background: #bdc3c7;
+        }
+
+        #traveler-icon {
+            position: absolute;
+            font-size: 35px;
+            bottom: 60px;
+            left: 20px;
+            transition: all 0.6s ease;
+            z-index: 2;
+        }
+
+        /* الكارت الأساسي */
+        .quiz-card {
+            background: white;
+            width: 95%;
+            max-width: 600px;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            text-align: center;
+        }
+
+        .options-container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 15px;
+            border: 2px solid var(--primary);
+            background: #fff;
+            color: var(--primary);
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 17px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        button:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        #encouragement {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            min-height: 30px;
+        }
+
+        .celebration { color: #27ae60; animation: bounce 0.5s; }
+        @keyframes bounce { 0%, 100% {transform: scale(1);} 50% {transform: scale(1.1);} }
+    </style>
+</head>
+<body>
+
+    <div class="game-header">
+        <h1>الرحلة التبشيرية الثالثة</h1>
+        <p>انشر كلمة الله في أفسس ومقدونيا وصولاً إلى أورشليم</p>
+    </div>
+
+    <div class="status-container">
+        <div style="display: flex; justify-content: space-between;">
+            <span>طاقة التبشير:</span>
+            <span id="progress-text">0%</span>
+        </div>
+        <div class="spirit-bar-bg">
+            <div id="spirit-fill"></div>
+        </div>
+    </div>
+
+    <div class="mini-map">
+        <div id="traveler-icon">👨‍🏫</div>
+        <div class="step"></div><div class="line"></div>
+        <div class="step"></div><div class="line"></div>
+        <div class="step"></div><div class="line"></div>
+        <div class="step"></div><div class="line"></div>
+        <div class="step"></div>
+    </div>
+
+    <div class="quiz-card">
+        <h2 id="question">تحميل التحدي...</h2>
+        <div class="options-container" id="options"></div>
+        <div id="encouragement"></div>
+    </div>
+
+    <script>
+        const stages = [
+            {
+                q: "في بداية الرحلة الثالثة، قضى بولس وقتاً طويلاً في مدينة مشهورة جداً (3 سنوات).. ما هي؟",
+                options: ["أفسس", "روما", "القسطنطينية", "الإسكندرية"],
+                correct: 0
+            },
+            {
+                q: "في أفسس، حدثت مشكلة كبيرة بسبب صناع تماثيل لإلهة وثنية.. ما اسمها؟",
+                options: ["أفروديت", "أرطاميس", "أثينا", "إيزيس"],
+                correct: 1
+            },
+            {
+                q: "ما اسم الشاب الذي نام وسقط من الطابق الثالث أثناء عظة بولس في ترواس وأقامه بولس؟",
+                options: ["أفتيخوس", "إستيفاناس", "تيموثاوس", "أغابوس"],
+            correct: 0
+            },
+            {
+                q: "من هم الأشخاص الذين ودعهم بولس بدموع في مدينة ميليتس قبل توجهه لأورشليم؟",
+                options: ["العسكر الرومان", "قسوس كنيسة أفسس", "الفلاسفة اليونانيين", "سكان أثينا"],
+                correct: 1
+            },
+            {
+                q: "من هو النبي الذي تنبأ لبولس في قيصرية بأنه سيُقيد في أورشليم باستخدام منطقه بولس؟",
+                options: ["سيلا", "برنابا", "أغابوس", "لوقا"],
+                correct: 2
+            }
+        ];
+
+        let currentStage = 0;
+        const total = stages.length;
+
+        function loadQuestion() {
+            if (currentStage >= total) {
+                showFinalWin();
+                return;
+            }
+
+            const data = stages[currentStage];
+            document.getElementById('question').innerText = data.q;
+            const container = document.getElementById('options');
+            container.innerHTML = "";
+
+            data.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.innerText = opt;
+                btn.onclick = () => check(i);
+                container.appendChild(btn);
+            });
+        }
+
+        function check(idx) {
+            const msg = document.getElementById('encouragement');
+            if (idx === stages[currentStage].correct) {
+                currentStage++;
+                updateUI();
+                msg.className = "celebration";
+                msg.innerText = "برافو! إجابة ممتازة.. يلا يا تلاميذ شاطرين!";
+                
+                setTimeout(() => {
+                    msg.innerText = "";
+                    loadQuestion();
+                }, 1800);
+            } else {
+                msg.style.color = "#e74c3c";
+                msg.innerText = "فكر تاني يا بطل.. بولس محتاج مساعدتك!";
+            }
+        }
+
+        function updateUI() {
+            // تحديث الشريط
+            const percent = (currentStage / total) * 100;
+            document.getElementById('spirit-fill').style.width = percent + "%";
+            document.getElementById('progress-text').innerText = Math.round(percent) + "%";
+
+            // تحريك الأيقونة
+            const move = (currentStage / total) * 85;
+            document.getElementById('traveler-icon').style.left = `calc(${move}% + 20px)`;
+        }
+
+        function showFinalWin() {
+            document.getElementById('question').innerText = "رائع! لقد وصلت مع بولس الرسول إلى أورشليم بسلام.";
+            document.getElementById('options').innerHTML = "<button onclick='location.reload()'>ابدأ الرحلة من جديد</button>";
+            document.getElementById('encouragement').innerText = "يا تلاميذ شاطرين.. أنتم الآن خبراء في حياة بولس!";
+            document.getElementById('traveler-icon').innerText = "👑";
+        }
+
+        loadQuestion();
+    </script>
+</body>
+</html>
